@@ -66,8 +66,15 @@ namespace httplistener
             responseString = NotFound(response);
             break;
         }
-
-        await WriteResponse(response, responseString).ConfigureAwait(false);
+   
+        response.ContentType = response.ContentType + "; charset=utf-8";
+        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+        response.ContentLength64 = buffer.Length;
+        using (var output = response.OutputStream)
+        {
+          output.Write(buffer, 0, buffer.Length);
+          output.Flush();
+        }
       }
 
     }
