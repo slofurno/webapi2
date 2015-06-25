@@ -59,9 +59,6 @@ namespace httplistener
         case "/queries":
           responseString = Queries(request, response);
           break;
-        case "/initDb":
-          initDb();
-          break;
         default:
           responseString = NotFound(response);
           break;
@@ -120,7 +117,7 @@ namespace httplistener
         conn.Open();
         for (var i = 0; i < count; i++)
         {
-          var id = rnd.Next(10000);
+          var id = rnd.Next(10000) + 1;
           var n = conn.Query<RandomNumber>(@"SELECT * FROM World WHERE id=@id", new { id = id }).FirstOrDefault();
 
           results.Add(n);
