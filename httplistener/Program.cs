@@ -15,7 +15,6 @@ namespace httplistener
     static void Main(string[] args)
     {
 
-
       SqliteContext.datasource = "fortunes.sqlite";
       Listen().Wait();
 
@@ -232,21 +231,11 @@ namespace httplistener
   public static class SqliteContext
   {
     public static string datasource;
-#if __MonoCS__
     public static SqliteConnection GetConnection()
     {
-      
-      //var fulldir = "C:/dev/csharp/movies.sqlite";
       return new SqliteConnection("Data Source=" + datasource);
     }
-#else
-    public static SQLiteConnection GetConnection()
-    {
-
-      //var fulldir = "C:/dev/csharp/movies.sqlite";
-      return new SQLiteConnection("Data Source=" + datasource);
-    }
-#endif
+  
   }
 
 }
