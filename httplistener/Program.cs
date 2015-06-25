@@ -101,6 +101,7 @@ namespace httplistener
       try
       {
         response.OutputStream.Write(buffer, 0, buffer.Length);
+        response.OutputStream.Flush();
       }
       catch (Exception e)
       {
