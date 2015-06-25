@@ -7,6 +7,7 @@ using Mono.Data.Sqlite;
 using Jil;
 using Dapper;
 using System.Net;
+using System.Diagnostics;
 
 namespace httplistener
 {
@@ -15,9 +16,11 @@ namespace httplistener
     static void Main(string[] args)
     {
 
+      Process Proc = Process.GetCurrentProcess();
+      long AffinityMask = (long)Proc.ProcessorAffinity;
+      Proc.ProcessorAffinity = (IntPtr)3;
       System.Net.ServicePointManager.DefaultConnectionLimit = 50000;
       System.Net.ServicePointManager.UseNagleAlgorithm = false;
-      System.Net.ServicePointManager.SetTcpKeepAlive(true, 100, 15);
       SqliteContext.datasource = "fortunes.sqlite";
       Listen().Wait();
 
