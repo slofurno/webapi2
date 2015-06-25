@@ -15,6 +15,8 @@ namespace httplistener
     static void Main(string[] args)
     {
 
+      
+
       Listen().Wait();
 
     }
@@ -56,6 +58,9 @@ namespace httplistener
           break;
         case "/queries":
           responseString = Queries(request, response);
+          break;
+        case "/initDb":
+          initDb();
           break;
         default:
           responseString = NotFound(response);
@@ -156,7 +161,7 @@ namespace httplistener
       }
     }
 
-    private static void initDb(HttpListenerRequest request, HttpListenerResponse response)
+    private static void initDb()
     {
       var rnd = new Random();
       using (var conn = new SqliteConnection("Data Source=fortunes.sqlite"))
