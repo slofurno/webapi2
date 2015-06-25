@@ -16,3 +16,4 @@ C:\dev\csharp\httplistener\httplistener\bin\Debug\Sigil.xml
 C:\dev\csharp\httplistener\httplistener\obj\Debug\httplistener.csprojResolveAssemblyReference.cache
 C:\dev\csharp\httplistener\httplistener\obj\Debug\httplistener.exe
 C:\dev\csharp\httplistener\httplistener\obj\Debug\httplistener.pdb
+C:\dev\csharp\httplistener\httplistener\bin\Debug\fortunes.sqlite

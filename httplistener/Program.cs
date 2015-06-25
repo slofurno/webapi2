@@ -39,17 +39,51 @@ namespace httplistener
       var response = context.Response;
       string responseString = null;
 
-      
+
       switch (request.Url.LocalPath)
       {
-        case "/fortunes":
-          responseString = Fortunes(request,response);
+        case "/plaintext":
+          responseString = Plaintext(response);
           break;
-
+        case "/json":
+          responseString = Json(response);
+          break;
+        case "/db":
+          responseString = Db(request, response);
+          break;
+        case "/fortunes":
+          responseString = Fortunes(request, response);
+          break;
+        case "/queries":
+          responseString = Queries(request, response);
+          break;
+        default:
+          responseString = NotFound(response);
+          break;
       }
 
       WriteResponse(response, responseString);
 
+
+    }
+
+    private static string NotFound(HttpListenerResponse response)
+    {
+      response.StatusCode = (int)HttpStatusCode.NotFound;
+      response.ContentType = "text/plain";
+      return "not found";
+    }
+
+    private static string Plaintext(HttpListenerResponse response)
+    {
+      response.ContentType = "text/plain";
+      return "Hello, World!";
+    }
+
+    private static string Json(HttpListenerResponse response)
+    {
+      response.ContentType = "application/json";
+      return JSON.SerializeDynamic(new { message = "Hello, World!" });
 
     }
 
@@ -68,6 +102,81 @@ namespace httplistener
       }
     }
 
+    private static string Queries(HttpListenerRequest request, HttpListenerResponse response)
+    {
+
+      var count = GetQueries(request);
+      var results = new List<RandomNumber>();
+
+      var rnd = new Random();
+      
+      using (var conn = new SqliteConnection("Data Source=fortunes.sqlite"))
+      {
+        conn.Open();
+        for (var i = 0; i < count; i++)
+        {
+          var id = rnd.Next(10000);
+          var n = conn.Query<RandomNumber>(@"SELECT * FROM World WHERE id=@id", new { id = id }).FirstOrDefault();
+
+          results.Add(n);
+        }
+     
+      }
+
+      return JSON.Serialize<List<RandomNumber>>(results);
+
+
+    }
+
+    public static int GetQueries(HttpListenerRequest request)
+    {
+      int queries = 1;
+      string queriesString = request.QueryString["queries"];
+      if (queriesString != null)
+      {
+        // If this fails to parse, queries will be set to zero.
+        int.TryParse(queriesString, out queries);
+        queries = Math.Max(1, Math.Min(500, queries));
+      }
+      return queries;
+    }
+
+    private static string Db(HttpListenerRequest request, HttpListenerResponse response)
+    {
+
+      var rnd = new Random();
+      var id = rnd.Next(10000);
+      using (var conn = new SqliteConnection("Data Source=fortunes.sqlite"))
+      {
+        conn.Open();
+
+        var result = conn.Query<RandomNumber>(@"SELECT * FROM World WHERE id=@id", new { id = id }).FirstOrDefault();
+
+        return JSON.Serialize<RandomNumber>(result);
+      }
+    }
+
+    private static void initDb(HttpListenerRequest request, HttpListenerResponse response)
+    {
+      var rnd = new Random();
+      using (var conn = new SqliteConnection("Data Source=fortunes.sqlite"))
+      {
+        conn.Open();
+
+        using (var trans = conn.BeginTransaction())
+        {
+          for (var i = 0; i < 10000; i++)
+          {
+            conn.Execute(@"INSERT INTO World (randomNumber) VALUES (@randomNumber)", new { randomNumber = rnd.Next(Int16.MaxValue) }, transaction: trans);
+          }
+          trans.Commit();
+           
+        }
+
+      }
+
+    }
+
     private static string Fortunes(HttpListenerRequest request, HttpListenerResponse response)
     {
       List<Fortune> fortunes;
@@ -75,7 +184,7 @@ namespace httplistener
       using (var conn = new SqliteConnection("Data Source=fortunes.sqlite"))
       {
         conn.Open();
-        fortunes = conn.Query<Fortune>("SELECT * FROM Fortune").ToList();
+        fortunes = conn.Query<Fortune>(@"SELECT * FROM Fortune").ToList();
 
       }
 
@@ -96,6 +205,12 @@ namespace httplistener
     }
 
 
+  }
+
+  public class RandomNumber
+  {
+    public int id { get; set; }
+    public int randomNumber { get; set; }
   }
 
   public class Fortune : IComparable<Fortune>
