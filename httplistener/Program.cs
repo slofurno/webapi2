@@ -67,7 +67,7 @@ namespace httplistener
             break;
         }
 
-        await WriteResponse(response, responseString);
+        await WriteResponse(response, responseString).ConfigureAwait(false);
       }
 
     }
@@ -99,8 +99,8 @@ namespace httplistener
       response.ContentLength64 = buffer.Length;
       try
       {
-        await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
-        await response.OutputStream.FlushAsync();
+        await response.OutputStream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+        await response.OutputStream.FlushAsync().ConfigureAwait(false);
       }
       catch (Exception e)
       {
