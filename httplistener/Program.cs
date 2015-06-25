@@ -103,6 +103,7 @@ namespace httplistener
       }
       catch (Exception e)
       {
+        Console.WriteLine(e.InnerException);
         // Ignore I/O errors
       }
     }
