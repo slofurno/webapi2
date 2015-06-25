@@ -97,16 +97,12 @@ namespace httplistener
       response.ContentType = response.ContentType + "; charset=utf-8";
       byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
       response.ContentLength64 = buffer.Length;
-      try
+      using (var output = response.OutputStream)
       {
         await response.OutputStream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
-        await response.OutputStream.FlushAsync().ConfigureAwait(false);
+        //await response.OutputStream.FlushAsync().ConfigureAwait(false);
       }
-      catch (Exception e)
-      {
-        Console.WriteLine(e.InnerException);
-        // Ignore I/O errors
-      }
+
     }
 
     private static string Queries(HttpListenerRequest request, HttpListenerResponse response)
