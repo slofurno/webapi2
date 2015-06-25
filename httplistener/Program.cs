@@ -7,7 +7,6 @@ using Mono.Data.Sqlite;
 using Jil;
 using Dapper;
 using System.Net;
-using System.Data.SQLite;
 
 namespace httplistener
 {
