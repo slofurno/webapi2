@@ -16,10 +16,7 @@ namespace httplistener
     static void Main(string[] args)
     {
 
-      Process Proc = Process.GetCurrentProcess();
-      long AffinityMask = (long)Proc.ProcessorAffinity;
-      Proc.ProcessorAffinity = (IntPtr)3;
-      System.Net.ServicePointManager.DefaultConnectionLimit = 50000;
+      System.Net.ServicePointManager.DefaultConnectionLimit = int.MaxValue;
       System.Net.ServicePointManager.UseNagleAlgorithm = false;
       SqliteContext.datasource = "fortunes.sqlite";
       Listen().Wait();
@@ -70,10 +67,8 @@ namespace httplistener
             break;
         }
 
-        WriteResponse(response, responseString);
+        await WriteResponse(response, responseString);
       }
-
-
 
     }
 
@@ -97,15 +92,15 @@ namespace httplistener
 
     }
 
-    private static void WriteResponse(HttpListenerResponse response, String responseString)
+    private static async Task WriteResponse(HttpListenerResponse response, String responseString)
     {
       response.ContentType = response.ContentType + "; charset=utf-8";
       byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
       response.ContentLength64 = buffer.Length;
       try
       {
-        response.OutputStream.Write(buffer, 0, buffer.Length);
-        response.OutputStream.Flush();
+        await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+        await response.OutputStream.FlushAsync();
       }
       catch (Exception e)
       {
