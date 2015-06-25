@@ -39,6 +39,7 @@ namespace httplistener
       var response = context.Response;
       string responseString = null;
 
+      
       switch (request.Url.LocalPath)
       {
         case "/fortunes":
