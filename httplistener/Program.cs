@@ -15,6 +15,8 @@ namespace httplistener
     static void Main(string[] args)
     {
 
+      System.Net.ServicePointManager.DefaultConnectionLimit = 50000;
+      System.Net.ServicePointManager.UseNagleAlgorithm = false;
       SqliteContext.datasource = "fortunes.sqlite";
       Listen().Wait();
 
