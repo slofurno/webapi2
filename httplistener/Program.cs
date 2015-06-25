@@ -99,8 +99,8 @@ namespace httplistener
       response.ContentLength64 = buffer.Length;
       using (var output = response.OutputStream)
       {
-        await response.OutputStream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
-        //await response.OutputStream.FlushAsync().ConfigureAwait(false);
+        output.Write(buffer, 0, buffer.Length);
+        output.Flush();
       }
 
     }
