@@ -7,6 +7,7 @@ using Mono.Data.Sqlite;
 using Jil;
 using Dapper;
 using System.Net;
+using System.Data.SQLite;
 
 namespace httplistener
 {
@@ -15,8 +16,8 @@ namespace httplistener
     static void Main(string[] args)
     {
 
-      
 
+      SqliteContext.datasource = "fortunes.sqlite";
       Listen().Wait();
 
     }
@@ -38,33 +39,36 @@ namespace httplistener
     static async Task Serve(HttpListenerContext context)
     {
       var request = context.Request;
-      var response = context.Response;
-      string responseString = null;
-
-
-      switch (request.Url.LocalPath)
+      using (var response = context.Response)
       {
-        case "/plaintext":
-          responseString = Plaintext(response);
-          break;
-        case "/json":
-          responseString = Json(response);
-          break;
-        case "/db":
-          responseString = Db(request, response);
-          break;
-        case "/fortunes":
-          responseString = Fortunes(request, response);
-          break;
-        case "/queries":
-          responseString = Queries(request, response);
-          break;
-        default:
-          responseString = NotFound(response);
-          break;
+        string responseString = null;
+
+
+        switch (request.Url.LocalPath)
+        {
+          case "/plaintext":
+            responseString = Plaintext(response);
+            break;
+          case "/json":
+            responseString = Json(response);
+            break;
+          case "/db":
+            responseString = Db(request, response);
+            break;
+          case "/fortunes":
+            responseString = Fortunes(request, response);
+            break;
+          case "/queries":
+            responseString = Queries(request, response);
+            break;
+          default:
+            responseString = NotFound(response);
+            break;
+        }
+
+        WriteResponse(response, responseString);
       }
 
-      WriteResponse(response, responseString);
 
 
     }
@@ -111,8 +115,7 @@ namespace httplistener
       var results = new List<RandomNumber>();
 
       var rnd = new Random();
-      
-      using (var conn = new SqliteConnection("Data Source=fortunes.sqlite"))
+      using (var conn = SqliteContext.GetConnection())
       {
         conn.Open();
         for (var i = 0; i < count; i++)
@@ -148,7 +151,7 @@ namespace httplistener
 
       var rnd = new Random();
       var id = rnd.Next(10000);
-      using (var conn = new SqliteConnection("Data Source=fortunes.sqlite"))
+      using (var conn = SqliteContext.GetConnection())
       {
         conn.Open();
 
@@ -161,7 +164,7 @@ namespace httplistener
     private static void initDb()
     {
       var rnd = new Random();
-      using (var conn = new SqliteConnection("Data Source=fortunes.sqlite"))
+      using (var conn = SqliteContext.GetConnection())
       {
         conn.Open();
 
@@ -183,7 +186,7 @@ namespace httplistener
     {
       List<Fortune> fortunes;
 
-      using (var conn = new SqliteConnection("Data Source=fortunes.sqlite"))
+      using (var conn = SqliteContext.GetConnection())
       {
         conn.Open();
         fortunes = conn.Query<Fortune>(@"SELECT * FROM Fortune").ToList();
@@ -225,4 +228,25 @@ namespace httplistener
       return Message.CompareTo(other.Message);
     }
   }
+
+  public static class SqliteContext
+  {
+    public static string datasource;
+#if __MonoCS__
+    public static SqliteConnection GetConnection()
+    {
+      
+      //var fulldir = "C:/dev/csharp/movies.sqlite";
+      return new SqliteConnection("Data Source=" + datasource);
+    }
+#else
+    public static SQLiteConnection GetConnection()
+    {
+
+      //var fulldir = "C:/dev/csharp/movies.sqlite";
+      return new SQLiteConnection("Data Source=" + datasource);
+    }
+#endif
+  }
+
 }
